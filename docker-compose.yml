@@ -16,15 +16,21 @@ services:
       retries: 30
       start_period: 30s
 
-
   api:
     build: ./server
     environment:
       DATABASE_URL: postgresql://ately:ately@db:5432/ately
+      WATCHFILES_FORCE_POLLING: "true"
     ports: ["8080:8080"]
+    volumes:
+      - ./server:/app/server
+    command: >
+      uvicorn server.main:app
+      --host 0.0.0.0 --port 8080
+      --reload --reload-dir /app/server
     depends_on:
       db:
         condition: service_healthy
-    # seeds demo project/case/run and executes the loop once at startup
+
 volumes:
   pgdata:
