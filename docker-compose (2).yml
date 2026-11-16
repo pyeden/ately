@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ately
+      POSTGRES_PASSWORD: ately
+      POSTGRES_DB: ately
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/baseline/baseline.sql:/docker-entrypoint-initdb.d/01-baseline.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "select 1"]
+      interval: 3s
+      retries: 20
+
+  api:
+    build: ./server
+    environment:
+      DATABASE_URL: postgresql://ately:ately@db:5432/ately
+    ports: ["8080:8080"]
+    depends_on:
+      db:
+        condition: service_healthy
+    # seeds demo project/case/run and executes the loop once at startup
+volumes:
+  pgdata:
